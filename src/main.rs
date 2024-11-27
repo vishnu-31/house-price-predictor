@@ -1,6 +1,8 @@
 use anyhow::Ok;
+use house_price_predictor::split_features_and_target;
 use house_price_predictor::train_test_split;
 use house_price_predictor::{download_csv_file, load_csv};
+use house_price_predictor::triain_xgboost_model;
 //use polars::prelude::*;
 
 fn main() -> anyhow::Result<()> {
@@ -16,5 +18,11 @@ fn main() -> anyhow::Result<()> {
     //split the data to training and testing sets
     let (train_df, test_df) = train_test_split(&df, 0.2)?;
 
+    let (x_train, y_train) = split_features_and_target(&train_df)?;
+    let (x_test, y_test) = split_features_and_target(&test_df)?;
+
+    let path_to_model = triain_xgboost_model(&x_train, &y_train, &x_test ,&y_test)?;
+
+    print!("model is saved in {}", path_to_model);
     Ok(())
 }
