@@ -1,0 +1,27 @@
+
+{
+    "name":"Rust development",
+    "build":{
+        "dockerfile": "Dockerfile"
+    },
+"customizations": {
+        "vscode": {
+            "extensions": [
+                "rust-lang.rust-analyzer",
+                "serayuzgur.crates",
+                "tamasfe.even-better-toml"
+            ]
+        }
+    },
+    "containerEnv": {
+        "LIBCLANG_PATH": "/usr/lib/llvm-11/lib"
+    },
+    "remoteUser": "vscode",
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": true,
+            "username": "vscode",
+            "upgradePackages": true
+        }
+    }
+}

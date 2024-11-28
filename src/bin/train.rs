@@ -3,6 +3,7 @@ use house_price_predictor::split_features_and_target;
 use house_price_predictor::train_test_split;
 use house_price_predictor::{download_csv_file, load_csv};
 use house_price_predictor::triain_xgboost_model;
+use house_price_predictor::upload_file_to_s3;
 //use polars::prelude::*;
 
 fn main() -> anyhow::Result<()> {
@@ -24,5 +25,7 @@ fn main() -> anyhow::Result<()> {
     let path_to_model = triain_xgboost_model(&x_train, &y_train, &x_test ,&y_test)?;
 
     print!("model is saved in {}", path_to_model);
+
+    upload_file_to_s3("house-price-prediction-project",&path_to_model,"model.bin")?;
     Ok(())
 }

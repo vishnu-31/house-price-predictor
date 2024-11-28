@@ -3,11 +3,26 @@ name = "house-price-predictor"
 version = "0.1.0"
 edition = "2021"
 
+
+[[bin]]
+name = "train"
+path = "src/bin/train.rs"
+
+[[bin]]
+name = "api"
+path = "src/bin/api.rs"
+
 [dependencies]
+actix-web = "4.9.0"
 anyhow = "1.0.93"
+aws-config = "1.5.10"
+aws-sdk-s3 = "1.63.0"
+env_logger = "0.11.5"
+log = "0.4.22"
 polars = { version = "0.37.0", features = ["csv", "ndarray"] }
 rand = "0.8.5"
 reqwest = { version = "0.12.9", features = ["blocking"] }
+tokio = { version = "1.41.1", features = ["full", "rt", "sync"] }
 xgboost = "=0.1.4"
 
 

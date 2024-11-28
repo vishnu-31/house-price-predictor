@@ -4,6 +4,15 @@ use polars::prelude::*;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use xgboost::{parameters, Booster, DMatrix };
+use aws_config::meta::region::RegionProviderChain;
+use aws_sdk_s3::config::Region;
+use aws_sdk_s3::primitives::ByteStream;
+use aws_sdk_s3::Client;
+// use std::error::Error;
+use std::fs::File;
+use std::io::Read;
+// use std::path::Path;
+use tokio;
 
 pub fn download_csv_file() -> anyhow::Result<String> {
     let url = "https://raw.githubusercontent.com/selva86/datasets/master/BostonHousing.csv";
@@ -29,7 +38,6 @@ pub fn load_csv(file_path: &str) -> anyhow::Result<DataFrame> {
 }
 
 pub fn download_nyc_data() -> anyhow::Result<String> {
-    // https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet
     let nyc_url = "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-0";
 
     for n in 1..10 {
@@ -106,6 +114,7 @@ pub fn triain_xgboost_model(
 
     let parameters = parameters::TrainingParametersBuilder::default()
         .dtrain(&dtrain)
+        .boost_rounds(31)
         .evaluation_sets(Some(evaluation_sets))
         .build().unwrap();
 
@@ -117,4 +126,38 @@ pub fn triain_xgboost_model(
     model.save(model_path)?;
 
     Ok(model_path.to_string())
+}
+
+pub fn upload_file_to_s3(bucket_name: &str, local_file_path: &str, s3_location: &str) -> anyhow::Result<()> {
+
+
+    let mut file = File::open(local_file_path)?;
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer)?;
+
+    let runtime = tokio::runtime::Runtime::new()?;
+
+    let region_provider = RegionProviderChain::first_try(Region::new("ap-south-1"))
+        .or_default_provider();
+    let shared_config = runtime.block_on(aws_config::defaults(aws_config::BehaviorVersion::latest())
+        .region(region_provider)
+        .load());
+
+    let client = Client::new(&shared_config); 
+
+    runtime.block_on(async {
+        let result =client
+            .put_object()
+            .bucket(bucket_name)
+            .key(local_file_path)
+            .body(ByteStream::from_path(local_file_path).await.unwrap())
+            .send()
+            .await
+            .expect("Failed to upload the file");
+    
+        print!("upload successful. {:?} ", Some(result.e_tag()));
+    });
+    print!("File {} uploaded to {} successfully", local_file_path, s3_location);
+
+    Ok(())
 }

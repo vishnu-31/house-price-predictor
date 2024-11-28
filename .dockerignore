@@ -1,0 +1,5 @@
+Makefile
+target/
+*.md
+*.bin
+*.csv
