@@ -5,7 +5,7 @@ use polars::prelude::IndexOrder::C;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
 
-
+pub type Model = Booster;
 
 pub fn train_test_split(
     df: &DataFrame,
@@ -84,4 +84,12 @@ pub fn triain_xgboost_model(
     model.save(model_path)?;
 
     Ok(model_path.to_string())
+}
+
+
+/// LOads an XGBoost model from a binary file and returns it
+
+pub fn load_model(model_path: &str) -> anyhow::Result<Booster> {
+    let model = Booster::load(model_path)?; 
+    Ok(model)
 }
