@@ -14,9 +14,11 @@ COPY ./Cargo.toml /app
 
 COPY ./Cargo.lock /app
 
-RUN mkdir src && echo "fn main() {}" > src/main.rs
+RUN mkdir -p src/bin && echo "fn main() {}" > src/bin/train.rs
 
-RUN cargo run
+RUN echo "fn main() {}" > src/bin/api.rs
+
+RUN cargo run --bin api
 
 
 CMD [ "echo", "'rust-env'" ]

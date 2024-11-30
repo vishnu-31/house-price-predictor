@@ -1,12 +1,25 @@
 use anyhow::Ok;
-use house_price_predictor::split_features_and_target;
-use house_price_predictor::train_test_split;
-use house_price_predictor::{download_csv_file, load_csv};
-use house_price_predictor::triain_xgboost_model;
-use house_price_predictor::upload_file_to_s3;
-//use polars::prelude::*;
+use house_price_predictor::model::split_features_and_target;
+use house_price_predictor::model::train_test_split;
+use house_price_predictor::data::{download_csv_file, load_csv};
+use house_price_predictor::model::triain_xgboost_model;
+use house_price_predictor::aws::upload_file_to_s3;
+use tokio::runtime::Runtime;
+use clap::{Parser,arg};
+
+#[derive(Parser)]
+struct Args {
+    #[arg(short, long)]
+    s3_bucket_name: String,
+
+    #[arg(short, long)]
+    key: String,
+}
 
 fn main() -> anyhow::Result<()> {
+
+
+    let args = Args::parse();
     println!("Starting training Script....");
 
     //# Download the csv file
@@ -26,6 +39,11 @@ fn main() -> anyhow::Result<()> {
 
     print!("model is saved in {}", path_to_model);
 
-    upload_file_to_s3("house-price-prediction-project",&path_to_model,"model.bin")?;
+    let bucket_name = &args.s3_bucket_name;
+    let s3_key = &args.key;
+    let rt = Runtime::new()?;
+    rt.block_on(async{
+        upload_file_to_s3(bucket_name,&path_to_model,s3_key).await.unwrap();
+    });
     Ok(())
 }
